@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  # Backend Flask (mesmo que produção)
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: desktop-dashboard-backend-dev
+    ports:
+      - "5001:5000"
+    environment:
+      - FLASK_ENV=development
+      - FLASK_DEBUG=1
+      - GOOGLE_SHEET_ID=1vPoodpppoT0CF0ly7RSaEGjYzaHvWchYiimNPcUyHTI
+      - CLIENT_NAME=Desktop
+    volumes:
+      - ./backend:/app
+      - ./data:/app/data
+    restart: unless-stopped
+
+  # Frontend React com Hot Reload
+  frontend-dev:
+    image: node:18-alpine
+    container_name: desktop-dashboard-frontend-dev
+    working_dir: /app
+    ports:
+      - "3000:3000"
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+      - WATCHPACK_POLLING=true
+      - FAST_REFRESH=true
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    command: sh -c "npm install && npm start"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+networks:
+  default:
+    name: desktop-dashboard-dev-network
+
+volumes:
+  data:
+    driver: local
