@@ -70,9 +70,9 @@ create_admin_cli_commands(app)
 # Initialize domain security
 security_config = SecurityConfig(
     rate_limit=RateLimitConfig(
-        requests_per_minute=60,
+        requests_per_minute=500,
         requests_per_hour=1000,
-        burst_limit=100,           # Increased for frontend compatibility
+        burst_limit=200,           # Increased for frontend compatibility
         enabled=True               # Enabled for production
     ),
     require_https=False,  # Set to True in production with SSL
