@@ -1,10 +1,15 @@
 // API Configuration
 // In development, when accessing via browser, use localhost:5001
-// In production or container environment, use the environment variable
+// In production or container environment, use relative URLs for nginx proxy
 const getApiBaseUrl = () => {
   // If we're in a browser environment and accessing localhost:3000, use localhost:5001
   if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
     return 'http://localhost:5001';
+  }
+
+  // In production, use relative URLs (nginx will proxy to backend)
+  if (typeof window !== 'undefined' && window.location.protocol === 'https:') {
+    return '';  // Use relative URLs in production
   }
 
   // Otherwise use environment variable or fallback

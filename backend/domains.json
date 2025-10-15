@@ -10,14 +10,68 @@
           "#34d399",
           "#6ee7b7",
           "#a7f3d0"
+        ],
+        "logo_url": null,
+        "favicon_url": null
+      },
+      "cache_timeout": 300,
+      "enabled": true,
+      "custom_settings": {}
+    },
+    "dashboard.nxtvdigital.com.br": {
+      "google_sheet_id": "1vPoodpppoT0CF0ly7RSaEGjYzaHvWchYiimNPcUyHTI",
+      "client_name": "NXTV Digital",
+      "theme": {
+        "primary_color": "#059669",
+        "secondary_color": "#10b981",
+        "accent_colors": [
+          "#34d399",
+          "#6ee7b7",
+          "#a7f3d0"
+        ],
+        "logo_url": null,
+        "favicon_url": null
+      },
+      "cache_timeout": 300,
+      "enabled": true,
+      "custom_settings": {}
+    },
+    "g2gplay.com.br": {
+      "google_sheet_id": "1IfqJAne5R5Hl1BVQaD8Me-ApGC58mhGAFGZWgsczGjA",
+      "client_name": "G2G",
+      "theme": {
+        "primary_color": "#059669",
+        "secondary_color": "#10b981",
+        "accent_colors": [
+          "#50b596",
+          "#82cab4",
+          "#b4dfd2"
+        ],
+        "logo_url": null,
+        "favicon_url": null
+      },
+      "cache_timeout": 300,
+      "enabled": true,
+      "custom_settings": {}
+    },
+    "novag2gplay.com.br": {
+      "google_sheet_id": "1IfqJAne5R5Hl1BVQaD8Me-ApGC58mhGAFGZWgsczGjA",
+      "client_name": "g2g",
+      "theme": {
+        "primary_color": "#059669",
+        "secondary_color": "#10b981",
+        "accent_colors": [
+          "#50b596",
+          "#82cab4",
+          "#b4dfd2"
         ]
       },
       "cache_timeout": 300,
       "enabled": true
     },
-    "g2gplay.com.br": {
-      "google_sheet_id": "1IfqJAne5R5Hl1BVQaD8Me-ApGC58mhGAFGZWgsczGjA",
-      "client_name": "G2G",
+    "gratis.nxplay.com.br": {
+      "google_sheet_id": "1sbCot8Xb9hlHpqrxUbM5Ti78dF9H6NrGAjD0znm2pCU",
+      "client_name": "NxPlay",
       "theme": {
         "primary_color": "#059669",
         "secondary_color": "#10b981",
@@ -41,26 +95,19 @@
         "#34d399",
         "#6ee7b7",
         "#a7f3d0"
-      ]
+      ],
+      "logo_url": null,
+      "favicon_url": null
     },
     "cache_timeout": 300,
-    "enabled": true
+    "enabled": true,
+    "custom_settings": {}
   },
   "security": {
     "additional_whitelist": [
+      "novag2gplay.com.br",
       "localhost",
-      "127.0.0.1",
-      "*.localhost",
-      "g2gplay.com.br"
-    ],
-    "rate_limiting": {
-      "enabled": true,
-      "requests_per_minute": 60,
-      "requests_per_hour": 1000,
-      "burst_limit": 100
-    },
-    "require_https": false,
-    "max_request_size": 1048576,
-    "block_suspicious_patterns": true
+      "gratis.nxplay.com.br"
+    ]
   }
 }

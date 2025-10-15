@@ -15,7 +15,7 @@ services:
       - CLIENT_NAME=${CLIENT_NAME:-Desktop}
     volumes:
       - ./data:/app/data
-      - ./backend/domains.json:/app/domains.json:ro
+      - ./backend/domains.json:/app/domains.json
       - ./logs:/app/logs
     restart: unless-stopped
     networks:

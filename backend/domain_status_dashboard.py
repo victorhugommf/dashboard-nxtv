@@ -179,6 +179,34 @@ DASHBOARD_HTML = """
             color: #333;
         }
         
+        .domain-actions {
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid #e5e7eb;
+            text-align: center;
+        }
+        
+        .btn-dashboard-link {
+            display: inline-block;
+            background: linear-gradient(135deg, #059669, #10b981);
+            color: white;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 4px rgba(5, 150, 105, 0.2);
+        }
+        
+        .btn-dashboard-link:hover {
+            background: linear-gradient(135deg, #047857, #059669);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(5, 150, 105, 0.3);
+            text-decoration: none;
+            color: white;
+        }
+        
         .refresh-info {
             text-align: center;
             color: #666;
@@ -553,6 +581,11 @@ DASHBOARD_HTML = """
                         <div class="label">Status</div>
                         <div class="value">${domain.status}</div>
                     </div>
+                </div>
+                <div class="domain-actions">
+                    <a href="/?domain=${domain.domain}" target="_blank" class="btn-dashboard-link">
+                        📊 Acessar Dashboard
+                    </a>
                 </div>
             `;
             
