@@ -6,6 +6,8 @@ WORKDIR /app
 # Instalar dependências do sistema
 RUN apt-get update && apt-get install -y \
     curl \
+    gcc \
+    python3-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Copiar requirements e instalar dependências Python
@@ -23,5 +25,5 @@ USER appuser
 EXPOSE 5000
 
 # Comando de inicialização
-CMD ["python", "app.py"]
+CMD ["python", "docker_start.py"]
 

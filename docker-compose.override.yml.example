@@ -1,0 +1,56 @@
+# Docker Compose Override Example
+# Copy this file to docker-compose.override.yml and customize as needed
+# This file will be automatically loaded by docker-compose
+
+services:
+  backend:
+    # Override environment variables
+    environment:
+      - FLASK_ENV=development
+      - FLASK_DEBUG=1
+      # Add custom environment variables here
+      
+    # Override ports if needed
+    # ports:
+    #   - "5002:5000"
+    
+    # Add additional volumes
+    volumes:
+      # Mount custom domains configuration
+      - ./custom-domains.json:/app/domains.json:ro
+      # Mount custom logs directory
+      - ./custom-logs:/app/logs
+      
+    # Override resource limits
+    # deploy:
+    #   resources:
+    #     limits:
+    #       memory: 512M
+    #       cpus: '0.5'
+
+  frontend:
+    # Override environment variables
+    environment:
+      - REACT_APP_API_URL=http://localhost:5002
+      
+    # Override ports if needed
+    # ports:
+    #   - "3001:80"
+
+  # Add additional services
+  # redis:
+  #   image: redis:alpine
+  #   container_name: multi-domain-dashboard-redis
+  #   ports:
+  #     - "6379:6379"
+  #   restart: unless-stopped
+  #   networks:
+  #     - default
+
+# Override network configuration
+# networks:
+#   default:
+#     driver: bridge
+#     ipam:
+#       config:
+#         - subnet: 172.20.0.0/16

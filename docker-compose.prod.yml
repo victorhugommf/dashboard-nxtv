@@ -1,36 +1,44 @@
-version: '3.8'
-
 services:
   # Backend Flask
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: desktop-dashboard-backend-prod
+    container_name: multi-domain-dashboard-backend-prod
     environment:
       - FLASK_ENV=production
       - FLASK_DEBUG=0
-      - GOOGLE_SHEET_ID=1vPoodpppoT0CF0ly7RSaEGjYzaHvWchYiimNPcUyHTI
-      - CLIENT_NAME=Desktop
+      - MULTI_DOMAIN_MODE=true
+      - DOMAINS_CONFIG_PATH=/app/domains.json
+      # Legacy environment variables for backward compatibility
+      - GOOGLE_SHEET_ID=${GOOGLE_SHEET_ID:-1vPoodpppoT0CF0ly7RSaEGjYzaHvWchYiimNPcUyHTI}
+      - CLIENT_NAME=${CLIENT_NAME:-Desktop}
     volumes:
       - ./data:/app/data
+      - ./backend/domains.json:/app/domains.json:ro
+      - ./logs:/app/logs
     restart: unless-stopped
     networks:
       - dashboard-network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5000/api/health"]
+      test: ["CMD", "python3", "/app/docker-healthcheck.py"]
       interval: 30s
-      timeout: 10s
+      timeout: 15s
       retries: 3
+      start_period: 40s
 
   # Frontend React
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    container_name: desktop-dashboard-frontend-prod
+    container_name: multi-domain-dashboard-frontend-prod
+    environment:
+      - REACT_APP_MULTI_DOMAIN=true
+      - REACT_APP_API_URL=${REACT_APP_API_URL:-http://backend:5000}
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
     restart: unless-stopped
     networks:
       - dashboard-network
@@ -39,11 +47,12 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
+      start_period: 30s
 
   # Nginx Proxy Reverso
   nginx:
     image: nginx:alpine
-    container_name: desktop-dashboard-nginx-prod
+    container_name: multi-domain-dashboard-nginx-prod
     ports:
       - "80:80"
       - "443:443"
@@ -53,11 +62,19 @@ services:
       - ./ssl:/etc/nginx/ssl:ro
       - ./frontend/build:/var/www/html:ro
     depends_on:
-      - backend
-      - frontend
+      backend:
+        condition: service_healthy
+      frontend:
+        condition: service_healthy
     restart: unless-stopped
     networks:
       - dashboard-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
 
 networks:
   dashboard-network:

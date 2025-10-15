@@ -111,3 +111,28 @@ coverage.xml
 
 # Exclude rsync temporary file
 .rsync-exclude
+
+# Test files
+test_*.py
+*_test.py
+*_demo.py
+example_*.py
+verify_*.py
+
+# Config backups
+config_backups/
+domains_backup_*.json
+
+# Data directories
+data/
+backend/data/
+backend/logs/
+
+# Virtual environments
+.venv/
+venv/
+backend/.venv/
+backend/venv/
+
+# Kiro AI files
+.kiro/

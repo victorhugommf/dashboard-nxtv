@@ -1,0 +1,34 @@
+{
+  "domains": {
+    "dashboard-desktop.com": {
+      "google_sheet_id": "1vPoodpppoT0CF0ly7RSaEGjYzaHvWchYiimNPcUyHTI",
+      "client_name": "Desktop",
+      "theme": {
+        "primary_color": "#059669",
+        "secondary_color": "#10b981",
+        "accent_colors": [
+          "#34d399",
+          "#6ee7b7",
+          "#a7f3d0"
+        ]
+      },
+      "cache_timeout": 300,
+      "enabled": true
+    }
+  },
+  "default_config": {
+    "google_sheet_id": "1vPoodpppoT0CF0ly7RSaEGjYzaHvWchYiimNPcUyHTI",
+    "client_name": "Desktop",
+    "theme": {
+      "primary_color": "#059669",
+      "secondary_color": "#10b981",
+      "accent_colors": [
+        "#34d399",
+        "#6ee7b7",
+        "#a7f3d0"
+      ]
+    },
+    "cache_timeout": 300,
+    "enabled": true
+  }
+}

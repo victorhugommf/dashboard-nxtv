@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { LineChart, Line, AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-
-const COLORS = ['#059669', '#10b981', '#34d399', '#6ee7b7', '#a7f3d0'];
+import { useThemeContext } from './contexts/ThemeContext';
+import { buildApiUrl, getDomainHeaders } from './config/api';
 
 function App() {
   const [activeTab, setActiveTab] = useState('evolucao');
@@ -15,6 +15,23 @@ function App() {
   });
 
   const [error, setError] = useState(null);
+
+  // Use theme context
+  const {
+    themeConfig,
+    loading: themeLoading,
+    error: themeError,
+    getThemeColors,
+    getClientName,
+    retryFetch: retryTheme,
+    isLegacyMode,
+    isFallbackMode
+  } = useThemeContext();
+
+  // Get dynamic colors from theme
+  const themeColors = getThemeColors();
+  const COLORS = themeColors.accents.length > 0 ? themeColors.accents : [themeColors.primary, themeColors.secondary];
+  const clientName = getClientName();
 
   // Função para buscar dados da API
   const fetchData = async () => {
@@ -32,15 +49,28 @@ function App() {
       const queryString = params.toString();
       const urlSuffix = queryString ? `?${queryString}` : '';
 
+      // Get domain parameter for multi-domain support
+      const urlParams = new URLSearchParams(window.location.search);
+      const domain = urlParams.get('domain');
+
+      // Add domain to URL parameters instead of headers
+      let finalUrlSuffix = urlSuffix;
+      if (domain) {
+        const separator = urlSuffix ? '&' : '?';
+        finalUrlSuffix = urlSuffix + separator + `domain=${encodeURIComponent(domain)}`;
+      }
+
+
+
       // Buscar dados de diferentes endpoints
       const [overviewRes, evolucaoRes, traficoRes, horarioRes, cidadesRes, provedoresRes, leadsRes] = await Promise.all([
-        fetch(`/api/dashboard/overview${urlSuffix}`),
-        fetch(`/api/dashboard/evolucao-temporal${urlSuffix}`),
-        fetch(`/api/dashboard/fontes-trafico${urlSuffix}`),
-        fetch(`/api/dashboard/distribuicao-horaria${urlSuffix}`),
-        fetch(`/api/dashboard/top-cidades${urlSuffix}`),
-        fetch(`/api/dashboard/top-provedores${urlSuffix}`),
-        fetch(`/api/dashboard/leads${urlSuffix}`)
+        fetch(buildApiUrl(`/api/dashboard/overview${finalUrlSuffix}`)),
+        fetch(buildApiUrl(`/api/dashboard/evolucao-temporal${finalUrlSuffix}`)),
+        fetch(buildApiUrl(`/api/dashboard/fontes-trafico${finalUrlSuffix}`)),
+        fetch(buildApiUrl(`/api/dashboard/distribuicao-horaria${finalUrlSuffix}`)),
+        fetch(buildApiUrl(`/api/dashboard/top-cidades${finalUrlSuffix}`)),
+        fetch(buildApiUrl(`/api/dashboard/top-provedores${finalUrlSuffix}`)),
+        fetch(buildApiUrl(`/api/dashboard/leads${finalUrlSuffix}`))
       ]);
 
       // Verificar se todas as respostas foram bem-sucedidas
@@ -118,10 +148,38 @@ function App() {
   };
 
   const renderContent = () => {
+    // Show theme loading if theme is still loading
+    if (themeLoading) {
+      return (
+        <div className="flex justify-center items-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 theme-spinner"></div>
+          <span className="ml-4 text-gray-600">Carregando configuração do tema...</span>
+        </div>
+      );
+    }
+
+    // Show theme error if theme failed to load
+    if (themeError && !isFallbackMode) {
+      return (
+        <div className="flex flex-col justify-center items-center h-64 bg-yellow-50 rounded-lg border border-yellow-200">
+          <div className="text-yellow-600 text-6xl mb-4">⚠️</div>
+          <h3 className="text-lg font-semibold text-yellow-800 mb-2">Erro no Tema</h3>
+          <p className="text-yellow-600 text-center mb-4 max-w-md">{themeError}</p>
+          <p className="text-sm text-yellow-600 text-center mb-4">Usando tema padrão temporariamente</p>
+          <button
+            onClick={retryTheme}
+            className="bg-yellow-600 text-white px-4 py-2 rounded hover:bg-yellow-700 transition-colors"
+          >
+            Tentar Novamente
+          </button>
+        </div>
+      );
+    }
+
     if (loading) {
       return (
         <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 theme-spinner"></div>
           <span className="ml-4 text-gray-600">Carregando dados da planilha...</span>
         </div>
       );
@@ -151,7 +209,7 @@ function App() {
           <p className="text-gray-500 text-center mb-4">Não foi possível carregar os dados da planilha.</p>
           <button
             onClick={fetchData}
-            className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition-colors"
+            className="theme-btn-primary px-4 py-2 rounded transition-colors"
           >
             Carregar Dados
           </button>
@@ -166,19 +224,19 @@ function App() {
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div className="bg-white p-6 rounded-lg shadow">
                 <h3 className="text-sm font-medium text-gray-500">Total de Leads</h3>
-                <p className="text-2xl font-bold text-green-600">{data.overview.totalLeads || 'N/A'}</p>
+                <p className="text-2xl font-bold theme-primary">{data.overview.totalLeads || 'N/A'}</p>
               </div>
               <div className="bg-white p-6 rounded-lg shadow">
                 <h3 className="text-sm font-medium text-gray-500">Média Diária</h3>
-                <p className="text-2xl font-bold text-green-600">{data.overview.mediaDiaria?.toFixed(1) || 'N/A'}</p>
+                <p className="text-2xl font-bold theme-primary">{data.overview.mediaDiaria?.toFixed(1) || 'N/A'}</p>
               </div>
               <div className="bg-white p-6 rounded-lg shadow">
                 <h3 className="text-sm font-medium text-gray-500">Crescimento</h3>
-                <p className="text-2xl font-bold text-green-600">+{data.overview.crescimento || 0}%</p>
+                <p className="text-2xl font-bold theme-primary">+{data.overview.crescimento || 0}%</p>
               </div>
               <div className="bg-white p-6 rounded-lg shadow">
                 <h3 className="text-sm font-medium text-gray-500">Taxa de Qualidade</h3>
-                <p className="text-2xl font-bold text-green-600">{data.overview.taxaQualidade?.toFixed(1) || 'N/A'}%</p>
+                <p className="text-2xl font-bold theme-primary">{data.overview.taxaQualidade?.toFixed(1) || 'N/A'}%</p>
               </div>
             </div>
             <div className="bg-white p-6 rounded-lg shadow">
@@ -190,7 +248,7 @@ function App() {
                     <XAxis dataKey="data" />
                     <YAxis />
                     <Tooltip />
-                    <Area type="monotone" dataKey="leads" stroke="#059669" fill="#10b981" />
+                    <Area type="monotone" dataKey="leads" stroke={themeColors.primary} fill={themeColors.secondary} />
                   </AreaChart>
                 </ResponsiveContainer>
               ) : (
@@ -217,7 +275,7 @@ function App() {
                     <XAxis dataKey="canal" />
                     <YAxis />
                     <Tooltip />
-                    <Bar dataKey="leads" fill="#059669" />
+                    <Bar dataKey="leads" fill={themeColors.primary} />
                   </BarChart>
                 </ResponsiveContainer>
               ) : (
@@ -274,7 +332,7 @@ function App() {
                   <XAxis dataKey="hora" />
                   <YAxis />
                   <Tooltip />
-                  <Bar dataKey="leads" fill="#059669" />
+                  <Bar dataKey="leads" fill={themeColors.primary} />
                 </BarChart>
               </ResponsiveContainer>
             ) : (
@@ -299,7 +357,7 @@ function App() {
                   <XAxis dataKey="cidade" />
                   <YAxis />
                   <Tooltip />
-                  <Bar dataKey="leads" fill="#059669" />
+                  <Bar dataKey="leads" fill={themeColors.primary} />
                 </BarChart>
               </ResponsiveContainer>
             ) : (
@@ -324,7 +382,7 @@ function App() {
                   <XAxis dataKey="provedor" />
                   <YAxis />
                   <Tooltip />
-                  <Bar dataKey="leads" fill="#059669" />
+                  <Bar dataKey="leads" fill={themeColors.primary} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -335,7 +393,7 @@ function App() {
                   <div key={index} className="flex justify-between items-center p-3 bg-gray-50 rounded">
                     <span className="font-medium">{index + 1}. {provedor.provedor}</span>
                     <div className="text-right">
-                      <span className="text-lg font-bold text-green-600">{provedor.leads}</span>
+                      <span className="text-lg font-bold theme-primary">{provedor.leads}</span>
                       <span className="text-sm text-gray-500 ml-2">({provedor.percentual}%)</span>
                     </div>
                   </div>
@@ -352,7 +410,7 @@ function App() {
               <h3 className="text-lg font-semibold">Lista de Leads - ({data.leads.length})</h3>
               <button
                 onClick={downloadCSV}
-                className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+                className="theme-btn-primary px-4 py-2 rounded"
               >
                 Download CSV
               </button>
@@ -400,16 +458,21 @@ function App() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
             <div>
-              <h1 className="text-2xl font-bold text-green-600">Dashboard Analítico</h1>
+              <h1 className="text-2xl font-bold theme-primary">Dashboard Analítico</h1>
               <p className="text-sm text-gray-500">
                 Última atualização: {data?.overview?.ultimaAtualizacao ? new Date(data.overview.ultimaAtualizacao).toLocaleString('pt-BR') : 'Carregando...'}
               </p>
+              {(isLegacyMode || isFallbackMode) && (
+                <p className="text-xs text-yellow-600">
+                  {isLegacyMode ? '⚠️ Modo legado ativo' : '⚠️ Tema padrão ativo'}
+                </p>
+              )}
             </div>
             <div className="flex items-center space-x-4">
-              <div className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">
-                Cliente: Proxxima
+              <div className="theme-bg-primary-light theme-primary px-3 py-1 rounded-full text-sm font-medium">
+                Cliente: {clientName}
               </div>
-              <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+              <div className="w-3 h-3 theme-bg-primary rounded-full animate-pulse"></div>
               <span className="text-sm text-gray-500">Online</span>
             </div>
           </div>
@@ -445,20 +508,20 @@ function App() {
                   setFilters(prev => ({ ...prev, startDate: '', endDate: '' }));
                   fetchData();
                 }}
-                className="px-4 py-2 text-sm text-gray-600 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-green-500"
+                className="px-4 py-2 text-sm text-gray-600 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 theme-border-primary"
               >
                 Limpar
               </button>
               <button
                 onClick={fetchData}
-                className="px-4 py-2 text-sm text-white bg-green-600 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500"
+                className="px-4 py-2 text-sm theme-btn-primary rounded-md focus:outline-none focus:ring-2 theme-border-primary"
               >
                 Aplicar Filtro
               </button>
             </div>
 
             {(filters.startDate || filters.endDate) && (
-              <div className="text-sm text-gray-600 bg-green-50 px-3 py-1 rounded-full">
+              <div className="text-sm text-gray-600 theme-bg-primary-light px-3 py-1 rounded-full">
                 📅 Filtro ativo: {filters.startDate || 'início'} - {filters.endDate || 'fim'}
               </div>
             )}
@@ -475,7 +538,7 @@ function App() {
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={`flex items-center space-x-2 py-4 px-2 border-b-2 font-medium text-sm whitespace-nowrap ${activeTab === tab.id
-                  ? 'border-green-500 text-green-600'
+                  ? 'theme-border-primary theme-primary'
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                   }`}
               >
@@ -497,7 +560,7 @@ function App() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex justify-between items-center">
             <p className="text-sm text-gray-500">
-              Dashboard Analítico Proxxima - Dados sincronizados automaticamente
+              Dashboard Analítico {clientName} - Dados sincronizados automaticamente
             </p>
             <p className="text-sm text-gray-500">
               Versão 1.0 - Janeiro 2025

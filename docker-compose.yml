@@ -1,48 +1,57 @@
-version: '3.8'
-
 services:
   # Backend Flask
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: desktop-dashboard-backend
+    container_name: multi-domain-dashboard-backend
     ports:
       - "5001:5000"
     environment:
       - FLASK_ENV=production
-      - GOOGLE_SHEET_ID=1vPoodpppoT0CF0ly7RSaEGjYzaHvWchYiimNPcUyHTI
-      - CLIENT_NAME=Desktop
+      - MULTI_DOMAIN_MODE=true
+      - DOMAINS_CONFIG_PATH=/app/domains.json
+      # Legacy environment variables for backward compatibility
+      - GOOGLE_SHEET_ID=${GOOGLE_SHEET_ID:-1vPoodpppoT0CF0ly7RSaEGjYzaHvWchYiimNPcUyHTI}
+      - CLIENT_NAME=${CLIENT_NAME:-Desktop}
     volumes:
       - ./backend:/app
       - ./data:/app/data
+      - ./backend/domains.json:/app/domains.json
+      - ./logs:/app/logs
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5000/api/health"]
+      test: ["CMD", "python3", "/app/docker-healthcheck.py"]
       interval: 30s
-      timeout: 10s
+      timeout: 15s
       retries: 3
+      start_period: 40s
 
   # Frontend React
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    container_name: desktop-dashboard-frontend
+    container_name: multi-domain-dashboard-frontend
     ports:
       - "3000:80"
+    environment:
+      - REACT_APP_MULTI_DOMAIN=true
+      - REACT_APP_API_URL=${REACT_APP_API_URL:-http://backend:5000}
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:80"]
       interval: 30s
       timeout: 10s
       retries: 3
+      start_period: 30s
 
 networks:
   default:
-    name: desktop-dashboard-network
+    name: multi-domain-dashboard-network
 
 volumes:
   data:

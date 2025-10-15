@@ -1,13 +1,15 @@
-# Dashboard Analítico Desktop - Pacote Completo
+# Dashboard Analítico Multi-Domínio - Pacote Completo
 
 ## 📋 Descrição
-Dashboard analítico completo para o cliente Desktop com integração automática ao Google Sheets.
+Dashboard analítico multi-domínio que permite servir múltiplos clientes através de uma única instância, onde cada domínio tem suas próprias configurações, dados e identidade visual.
 
 ## 🎯 Características
-- **Cliente:** Desktop
-- **Planilha:** https://docs.google.com/spreadsheets/d/1Zw9ltzM3dti84UtNJgmYhkUM1DOLYw43xnQXuwkCVb8/edit?usp=drivesdk
-- **Tema:** Verde/Cinza (identidade Desktop)
-- **Tecnologia:** React + Flask + Python
+- **Multi-Domínio:** Suporte a múltiplos clientes em uma única instância
+- **Isolamento de Dados:** Cada domínio acessa apenas seus próprios dados
+- **Temas Personalizados:** Identidade visual específica por cliente
+- **Configuração Dinâmica:** Adição de novos clientes sem restart
+- **Retrocompatibilidade:** Funciona com configurações existentes
+- **Tecnologia:** React + Flask + Python + Docker
 
 ## 📦 Estrutura do Projeto
 
@@ -23,32 +25,40 @@ desktop_dashboard_complete/
 
 ## 🚀 Instalação Rápida
 
-### Opção 1: Desenvolvimento (Hot Reload) ⚡
+### Opção 1: Script de Deploy Multi-Domínio (Recomendado) ⚡
+```bash
+# Deploy em desenvolvimento
+./scripts/deploy-multi-domain.sh deploy dev
+
+# Deploy em produção
+./scripts/deploy-multi-domain.sh deploy prod
+
+# Verificar status
+./scripts/deploy-multi-domain.sh status
+```
+
+### Opção 2: Desenvolvimento (Hot Reload)
 ```bash
 chmod +x scripts/dev.sh
 ./scripts/dev.sh
 ```
-**Recomendado para desenvolvimento - mudanças no código são refletidas instantaneamente!**
 
-### Opção 2: Produção (Build Otimizado)
+### Opção 3: Produção (Build Otimizado)
 ```bash
 chmod +x scripts/prod.sh
 ./scripts/prod.sh
 ```
 
-### Opção 3: Docker Manual
+### Opção 4: Docker Manual
 ```bash
-# Desenvolvimento
+# Desenvolvimento multi-domínio
 docker-compose -f docker-compose.dev.yml up -d
 
-# Produção
-docker-compose up -d
-```
+# Produção multi-domínio
+docker-compose -f docker-compose.prod.yml up -d
 
-### Opção 4: Instalação Automática no Sistema
-```bash
-chmod +x scripts/install.sh
-./scripts/install.sh
+# Produção simples
+docker-compose up -d
 ```
 
 ## 📊 Funcionalidades
@@ -71,18 +81,52 @@ chmod +x scripts/install.sh
 
 ## 🔧 Configuração
 
-### Variáveis de Ambiente:
+### Configuração Multi-Domínio:
+
+1. **Copie o arquivo de ambiente:**
 ```bash
-GOOGLE_SHEET_ID=1vPoodpppoT0CF0ly7RSaEGjYzaHvWchYiimNPcUyHTI
-CLIENT_NAME=Desktop
-THEME_COLOR=green
-PORT=3000
+cp .env.example .env
 ```
 
-### ⚠️ Importante - Dados Reais:
-- **Sem Dados Simulados:** O dashboard trabalha exclusivamente com dados reais da planilha
-- **Tratamento de Erro:** Mensagens claras quando a planilha não está acessível
-- **Planilha Pública:** Certifique-se de que a planilha está configurada como pública para leitura
+2. **Configure os domínios em `backend/domains.json`:**
+```json
+{
+  "domains": {
+    "dashboard-cliente1.com": {
+      "google_sheet_id": "SEU_GOOGLE_SHEET_ID_CLIENTE1",
+      "client_name": "Cliente 1",
+      "theme": {
+        "primary_color": "#059669",
+        "secondary_color": "#10b981",
+        "accent_colors": ["#34d399", "#6ee7b7", "#a7f3d0"]
+      },
+      "cache_timeout": 300,
+      "enabled": true
+    }
+  }
+}
+```
+
+### Variáveis de Ambiente (.env):
+```bash
+# Multi-Domain Configuration
+MULTI_DOMAIN_MODE=true
+DOMAINS_CONFIG_PATH=./backend/domains.json
+
+# Legacy Configuration (backward compatibility)
+GOOGLE_SHEET_ID=1vPoodpppoT0CF0ly7RSaEGjYzaHvWchYiimNPcUyHTI
+CLIENT_NAME=Desktop
+
+# Network Configuration
+BACKEND_PORT=5001
+FRONTEND_PORT=3000
+```
+
+### ⚠️ Importante - Configuração Multi-Domínio:
+- **Isolamento de Dados:** Cada domínio acessa apenas sua planilha específica
+- **Configuração Dinâmica:** Novos domínios podem ser adicionados sem restart
+- **Retrocompatibilidade:** Configurações existentes continuam funcionando
+- **Planilhas Públicas:** Certifique-se de que todas as planilhas estão públicas para leitura
 
 ## ⚡ Desenvolvimento vs Produção
 
@@ -127,6 +171,7 @@ cd /opt/desktop-dashboard
 - ✅ **Monitoramento** e logs centralizados
 
 ### 📚 Documentação Completa:
+- **Deploy Multi-Domínio:** `docs/MULTI_DOMAIN_DEPLOYMENT.md`
 - **Deploy Linode:** `docs/DEPLOY_LINODE.md`
 - **Troubleshooting:** `docs/TROUBLESHOOTING.md`
 
@@ -142,7 +187,33 @@ Consulte a pasta `docs/` para documentação detalhada.
 ## 🆘 Suporte
 Para suporte técnico, consulte `docs/TROUBLESHOOTING.md`
 
+## 🔄 Migração de Configuração Existente
+
+Se você já tem uma instalação funcionando, o sistema detecta automaticamente e migra para o novo formato multi-domínio mantendo total compatibilidade.
+
+## 🌐 Testando Localmente
+
+Para testar múltiplos domínios localmente, adicione ao `/etc/hosts`:
+```
+127.0.0.1 dashboard-cliente1.com
+127.0.0.1 dashboard-cliente2.com
+```
+
+## 📊 Monitoramento
+
+### Health Checks:
+```bash
+# Verificar saúde geral
+curl http://localhost:5001/api/health
+
+# Verificar todos os domínios
+curl http://localhost:5001/api/admin/domains/health
+
+# Verificar domínio específico
+curl -H "Host: dashboard-cliente1.com" http://localhost:5001/api/domain/info
+```
+
 ---
-**Dashboard Desktop - Versão 1.0**
+**Dashboard Multi-Domínio - Versão 2.0**
 Data: Janeiro 2025
 
